@@ -15,6 +15,9 @@ const { Pool } = pg;
 // PostgreSQL pool configuration
 const poolConfig = {
   connectionString: process.env.DATABASE_URL || undefined,
+    ssl: process.env.NODE_ENV === 'production'
+    ? { rejectUnauthorized: false }
+    : undefined,
   host: process.env.PGHOST || 'localhost',
   port: parseInt(process.env.PGPORT || '5432', 10),
   user: process.env.PGUSER || 'postgres',
