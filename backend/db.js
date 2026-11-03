@@ -246,12 +246,16 @@ export async function initDatabase() {
     console.log(`[Database] Successfully connected to PostgreSQL at ${poolConfig.host}:${poolConfig.port}/${poolConfig.database}`);
     return true;
   } catch (err) {
-    useRealPostgres = false;
-    console.warn(`[Database] Notice: PostgreSQL is not running or unreachable at ${poolConfig.host}:${poolConfig.port}.`);
-    console.warn(`[Database] Operating in seamless local-first fallback mode. Your data is stored safely.`);
-    console.warn(`[Database] To use native PostgreSQL on your machine, follow instructions in SETUP_LOCAL.txt.`);
-    return false;
+  useRealPostgres = false;
+
+  if (process.env.NODE_ENV === 'production') {
+    console.error('[Database] PostgreSQL connection failed:', err);
+    throw err;
   }
+
+  console.warn('[Database] PostgreSQL unavailable. Using local fallback.');
+  return false;
+}
 }
 
 /**
