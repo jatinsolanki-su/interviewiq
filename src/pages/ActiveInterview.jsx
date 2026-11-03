@@ -100,32 +100,54 @@ export default function ActiveInterview({ interviewId, onFinishInterview, onCanc
 
   // AI Voice Synthesis: Speak question aloud
   const speakQuestion = (text) => {
-    if (!text || !window.speechSynthesis) return;
+  if (!text || !('speechSynthesis' in window)) {
+    console.error('Speech synthesis is not supported.');
+    setInterviewState('ready');
+    return;
+  }
 
-    window.speechSynthesis.cancel(); // Stop any pending speech
+  const synth = window.speechSynthesis;
+
+  synth.cancel();
+  synth.resume();
+
+  const utterance = new SpeechSynthesisUtterance(text);
+
+  utterance.rate = 0.95;
+  utterance.pitch = 1;
+  utterance.volume = 1;
+  utterance.lang = 'en-US';
+
+  const voices = synth.getVoices();
+
+  const naturalVoice = voices.find(
+    v =>
+      v.lang.startsWith('en') &&
+      (v.name.includes('Natural') ||
+        v.name.includes('Google') ||
+        v.name.includes('Samantha'))
+  );
+
+  if (naturalVoice) {
+    utterance.voice = naturalVoice;
+  }
+
+  utterance.onstart = () => {
     setInterviewState('ai_speaking');
-
-    const utterance = new SpeechSynthesisUtterance(text);
-    utterance.rate = 1.0;
-    utterance.pitch = 1.0;
-    utterance.lang = 'en-US';
-
-    // Pick a natural English voice if available
-    const voices = window.speechSynthesis.getVoices();
-    const naturalVoice = voices.find(v => v.lang.startsWith('en') && (v.name.includes('Natural') || v.name.includes('Google') || v.name.includes('Samantha')));
-    if (naturalVoice) utterance.voice = naturalVoice;
-
-    utterance.onend = () => {
-      setInterviewState('ready');
-    };
-
-    utterance.onerror = (e) => {
-      console.warn('SpeechSynthesis error:', e);
-      setInterviewState('ready');
-    };
-
-    window.speechSynthesis.speak(utterance);
   };
+
+  utterance.onend = () => {
+    setInterviewState('ready');
+  };
+
+  utterance.onerror = (event) => {
+    console.error('Speech synthesis error:', event.error);
+    setInterviewState('ready');
+  };
+
+  setInterviewState('ai_speaking');
+  synth.speak(utterance);
+};
 
   // Repeat Question aloud
   const repeatQuestion = () => {
@@ -354,7 +376,7 @@ export default function ActiveInterview({ interviewId, onFinishInterview, onCanc
           <button
             type="button"
             onClick={repeatQuestion}
-            disabled={interviewState === 'evaluating' || interviewState === 'ai_speaking'}
+            disabled={interviewState === 'evaluating'}
             className="flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-medium text-[#303820] bg-[#FCFAF3] hover:bg-[#E6E0D1]/50 border border-[#E6E0D1] transition-all cursor-pointer disabled:opacity-50"
             title="Repeat Question Aloud"
           >
@@ -453,7 +475,7 @@ export default function ActiveInterview({ interviewId, onFinishInterview, onCanc
             <button
               type="button"
               onClick={startListening}
-              disabled={interviewState === 'evaluating' || interviewState === 'ai_speaking'}
+              disabled={interviewState === 'evaluating'}
               className="flex items-center gap-2 px-6 py-3 rounded-xl font-semibold text-xs text-[#F7F4EA] bg-[#596B32] hover:bg-[#303820] transition-all shadow-sm cursor-pointer disabled:opacity-50"
             >
               <Mic className="w-4 h-4" />
