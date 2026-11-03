@@ -1,0 +1,339 @@
+================================================================================
+INTERVIEWIQ — COMPLETE LOCAL SETUP & CONFIGURATION GUIDE
+================================================================================
+
+Welcome to InterviewIQ!
+This document is written step-by-step for students, developers, and job seekers
+setting up and running InterviewIQ on their own computer using Visual Studio Code,
+PostgreSQL, and Google AI Studio's free Gemini API.
+
+You do NOT need paid services, Docker, or cloud hosting. Everything runs locally.
+
+--------------------------------------------------------------------------------
+TABLE OF CONTENTS
+--------------------------------------------------------------------------------
+1. SECTION A: SOFTWARE INSTALLATION
+2. SECTION B: POSTGRESQL DATABASE SETUP
+3. SECTION C: EXECUTING SCHEMA.SQL & SEED.SQL
+4. SECTION D: FREE GEMINI API KEY SETUP
+5. SECTION E: ENVIRONMENT VARIABLES (.ENV)
+6. SECTION F: DEPENDENCY INSTALLATION
+7. SECTION G: STARTING THE LOCAL APPLICATION
+8. SECTION H: FIRST-TIME TESTING & WALKTHROUGH
+9. SECTION I: TROUBLESHOOTING CHECKLIST
+10. SECTION J: FREE-TIER LIMITATIONS & BROWSER SUPPORT
+
+================================================================================
+1. SECTION A: SOFTWARE INSTALLATION
+================================================================================
+
+Step 1: Install Node.js (LTS Version)
+1. Go to the official website: https://nodejs.org/
+2. Download the version labeled "LTS" (Long Term Support, recommended for all users).
+3. Run the installer and click "Next" through the setup steps.
+4. Verify installation by opening your Terminal (macOS/Linux) or Command Prompt / PowerShell (Windows) and typing:
+   node -v
+   npm -v
+   You should see output like:
+   v20.x.x (or higher)
+   10.x.x (or higher)
+
+Step 2: Install Visual Studio Code
+1. Download VS Code for your operating system from: https://code.visualstudio.com/
+2. Install and launch VS Code.
+
+Step 3: Install PostgreSQL Community Edition (Free)
+1. Download PostgreSQL from: https://www.postgresql.org/download/
+   - For Windows / macOS: Download the interactive installer by EnterpriseDB (EDB).
+   - For Linux (Ubuntu/Debian): Run: sudo apt update && sudo apt install postgresql postgresql-contrib
+2. During the installation wizard:
+   - Keep the default port: 5432
+   - Set a superuser password for the default user "postgres" (e.g., "postgres" or "admin123").
+   - REMEMBER THIS PASSWORD! You will need it in Section B and Section E.
+3. Check the box to include "pgAdmin 4" and "Command Line Tools".
+
+Step 4: Open InterviewIQ in VS Code
+1. Open VS Code.
+2. Click "File" -> "Open Folder..." (or press Ctrl+O / Cmd+O).
+3. Select the folder containing this InterviewIQ project.
+
+================================================================================
+2. SECTION B: POSTGRESQL DATABASE SETUP
+================================================================================
+
+Step 1: Ensure PostgreSQL Service is Running
+- Windows: Press Win + R, type `services.msc`, look for "postgresql-x64-xx" and verify it says "Running".
+- macOS: Check if PostgreSQL menu bar icon is active or run: brew services start postgresql
+- Linux: Run: sudo systemctl status postgresql (or `sudo systemctl start postgresql`)
+
+Step 2: Open psql (Terminal) or pgAdmin 4 (GUI)
+
+Method 1: Using the Terminal (Fastest)
+Open a terminal window and run:
+psql -U postgres
+
+(It will prompt for the password you entered during PostgreSQL installation).
+
+Method 2: Using pgAdmin 4
+1. Launch "pgAdmin 4" from your application menu.
+2. Enter your master password to unlock pgAdmin.
+3. In the left sidebar, double-click "Servers" -> "PostgreSQL".
+4. Right-click on "Databases" -> "Create" -> "Database...".
+5. Enter Database name: `interviewiq`
+6. Click "Save".
+
+Step 3: Create the Database via SQL
+If you are in the terminal (`psql -U postgres`), execute:
+CREATE DATABASE interviewiq;
+
+To connect to the newly created database in psql:
+\c interviewiq
+
+================================================================================
+3. SECTION C: EXECUTING SCHEMA.SQL & SEED.SQL
+================================================================================
+
+The database setup files are located in the `database/` directory:
+- `database/schema.sql` (Creates all 12 tables, indexes, constraints, and vector setup)
+- `database/seed.sql`   (Populates curated technical questions across 14 categories)
+
+Execute the SQL files:
+
+OPTION 1: From your computer's terminal (One Command)
+Run from the root directory of the project:
+
+# On Windows (PowerShell/CMD):
+psql -U postgres -d interviewiq -f database/schema.sql
+psql -U postgres -d interviewiq -f database/seed.sql
+
+# On macOS / Linux:
+psql -U postgres -d interviewiq -f database/schema.sql
+psql -U postgres -d interviewiq -f database/seed.sql
+
+OPTION 2: Using pgAdmin 4 Query Tool
+1. In pgAdmin, expand "Servers" -> "PostgreSQL" -> "Databases".
+2. Click on the `interviewiq` database.
+3. In the top toolbar, click "Tools" -> "Query Tool".
+4. Click the "Open File" folder icon, browse to `database/schema.sql`, and click "Open".
+5. Click the "Execute" button (or press F5). You should see: "Query returned successfully".
+6. Repeat for `database/seed.sql` to populate the question bank.
+
+Step 4: Verify Tables Were Created
+In `psql`, type:
+\dt
+
+You should see 12 tables:
+- users
+- user_settings
+- resumes
+- resume_chunks
+- interviews
+- interview_questions
+- interview_answers
+- answer_evaluations
+- skill_evidence
+- interview_reports
+- question_bank
+- bookmarked_questions
+
+================================================================================
+4. SECTION D: FREE GEMINI API KEY SETUP
+================================================================================
+
+InterviewIQ uses Google's official Gemini API to power:
+- Spoken answer technical evaluation & grading
+- Evidence-Based Adaptive follow-up investigation
+- PDF resume text extraction & competency profiling
+- Evidence-Based Skill Gap Mapping
+
+HOW TO GET A 100% FREE GEMINI API KEY:
+1. Open your web browser and go to:
+   https://aistudio.google.com/
+2. Sign in with any personal Google account.
+3. Click the blue button labeled "Get API key" (located in the top left or top navigation).
+4. Click "Create API key".
+5. Select "Create key in new project" (or choose an existing Google Cloud project if you have one).
+6. Copy the generated API key (it starts with `AIza...`).
+7. Keep this key private! Never commit it to GitHub or share it.
+
+How to verify which Gemini models are available:
+- InterviewIQ uses `gemini-3.8-flash` (or `gemini-flash-latest`), which offers high speed, high reasoning depth, and generous free quotas for individual developers.
+- You can test your key at: https://aistudio.google.com/prompts/new_chat
+
+================================================================================
+5. SECTION E: ENVIRONMENT VARIABLES (.ENV)
+================================================================================
+
+1. In the root directory of the project, locate the file named `.env.example`.
+2. Create a copy of `.env.example` and name the new file `.env`:
+   # Terminal command:
+   cp .env.example .env   # (macOS/Linux)
+   copy .env.example .env # (Windows)
+3. Open `.env` in VS Code and fill in your details:
+
+--------------------------------------------------------------------------------
+PORT=3000
+NODE_ENV=development
+
+# JWT Secret for cookie authentication (any long random string)
+JWT_SECRET="interviewiq_super_secret_jwt_random_key_change_me_2026"
+
+# Paste your free Google AI Studio Gemini key here:
+GEMINI_API_KEY="AIzaSyYourCopiedKeyFromGoogleAIStudio..."
+
+# Your local PostgreSQL credentials:
+PGHOST=localhost
+PGPORT=5432
+PGUSER=postgres
+PGPASSWORD=your_actual_postgres_password
+PGDATABASE=interviewiq
+
+APP_URL="http://localhost:3000"
+--------------------------------------------------------------------------------
+
+================================================================================
+6. SECTION F: DEPENDENCY INSTALLATION
+================================================================================
+
+Open the integrated terminal in VS Code (press Ctrl+` or Cmd+`, or click "Terminal" -> "New Terminal").
+
+Run:
+npm install
+
+This installs all required frontend and backend packages:
+- express, cookie-parser, pg, bcryptjs, jsonwebtoken, multer, pdf-parse
+- @google/genai (official Gemini JavaScript SDK)
+- react, react-dom, vite, @tailwindcss/vite, lucide-react, recharts
+
+================================================================================
+7. SECTION G: STARTING THE LOCAL APPLICATION
+================================================================================
+
+InterviewIQ is an integrated full-stack application.
+To start the entire application (Express backend API + Vite React frontend):
+
+Run:
+npm run dev
+
+You will see:
+==================================================
+  INTERVIEWIQ — LOCAL-FIRST AI INTERVIEW PLATFORM
+  Running on: http://localhost:3000
+  Environment: Development
+==================================================
+[Database] Successfully connected to PostgreSQL at localhost:5432/interviewiq
+
+Open Google Chrome and navigate to:
+http://localhost:3000
+
+NOTE: If PostgreSQL is not yet running on your computer, InterviewIQ will automatically
+operate in local development mode without crashing so you can test immediately!
+
+================================================================================
+8. SECTION H: FIRST-TIME TESTING & WALKTHROUGH
+================================================================================
+
+Follow this step-by-step checklist to test every feature:
+
+Step 1: Sign Up
+- You will see the clean Authentication page (the very first page by design).
+- Click the "Sign Up" tab.
+- Enter your Full Name, Email, and Password (min 6 characters).
+- Click "Create Free Account".
+- Verify: You are redirected to your personalized Dashboard.
+
+Step 2: Upload a Resume (Optional but Recommended)
+- Click "Resume" in the top navigation.
+- Click the upload area and select any technical PDF resume.
+- Wait a few seconds while Gemini analyzes the text, extracts your claimed skills,
+  education, and projects, and chunks the content for RAG.
+- Notice the extracted "Investigation Hooks" — these will be tested in your interview!
+
+Step 3: Launch a Voice Technical Interview
+- Click "Start Interview" in the top bar.
+- Choose your Target Role (e.g. "Full Stack Software Engineer" or "Frontend React Developer").
+- Set Difficulty: "Intermediate".
+- Ensure "Link Active Resume" is checked.
+- Click "Start Voice Interview".
+
+Step 4: Spoken Voice Interaction
+- Chrome will display a popup: "InterviewIQ wants to use your microphone". Click "Allow".
+- The AI interviewer will display the opening question and speak it aloud through your speakers!
+- Click "Start Answering (Speak)" and answer aloud into your microphone.
+- Watch your spoken words appear in real-time in the "Spoken Transcript Review" box!
+- Click "Stop Recording" when done.
+- Review your transcript. Click "Re-record" if you want to try again, or click "Submit Spoken Answer".
+
+Step 5: Evidence-Based Adaptive Follow-Up
+- If you make a technical claim (e.g., "I used Redux for state" or "I indexed with B-Tree"),
+  watch for the yellow alert:
+  "Evidence-Based Adaptive Follow-Up Triggered: Probing depth of understanding & trade-offs!"
+- Speak your response to the follow-up question.
+
+Step 6: View the Performance Report & Skill Gap Map
+- Complete all questions or click "End".
+- The final report will generate:
+  - Overall, Technical, Reasoning, and Communication scores
+  - Evidence-Based Skill Gap Map (comparing Claimed vs Proven skills)
+  - Question-wise evaluations with high-caliber model answers
+  - Personalized Learning Plan
+- Click "Export / Print PDF Report" to save a copy.
+
+Step 7: Check Analytics & History
+- Click "Analytics" to view your score progression line chart and skill breakdown.
+- Click "History" to see your past sessions stored in PostgreSQL.
+- Click "Question Bank" to study curated technical questions across 14 categories.
+
+================================================================================
+9. SECTION I: TROUBLESHOOTING CHECKLIST
+================================================================================
+
+Problem 1: "password authentication failed for user 'postgres'"
+Fix: In `.env`, ensure `PGPASSWORD` matches the password you entered when installing PostgreSQL.
+If forgotten, open pgAdmin -> Servers -> right click PostgreSQL -> Change Password, or edit `pg_hba.conf` to `trust` locally.
+
+Problem 2: "ECONNREFUSED 127.0.0.1:5432"
+Fix: The PostgreSQL server service is stopped.
+- On Windows: Start "postgresql" service in `services.msc`.
+- On Mac: Run `brew services start postgresql`.
+- On Linux: Run `sudo systemctl start postgresql`.
+Note: InterviewIQ includes an automatic local fallback store so the UI will continue to function even if Postgres is temporarily offline.
+
+Problem 3: "database 'interviewiq' does not exist"
+Fix: Run `psql -U postgres` and type: `CREATE DATABASE interviewiq;`
+
+Problem 4: "Microphone permission denied"
+Fix: In Chrome, click the tune/lock icon on the left side of the URL bar (`http://localhost:3000`).
+Under Permissions, toggle "Microphone" to "Allow" and refresh the page.
+
+Problem 5: "SpeechRecognition is not supported in this browser"
+Fix: Use Google Chrome on Desktop (Windows, macOS, or Linux). Browser-native SpeechRecognition is supported out-of-the-box in Chrome without any third-party extensions.
+
+Problem 6: "Gemini API key is invalid or quota exceeded"
+Fix: Verify you copied the key correctly from https://aistudio.google.com/ with no extra spaces in `.env`.
+If you hit free-tier rate limits (e.g. 15 requests per minute on free tier), wait 30 seconds before submitting the next answer.
+
+Problem 7: "Port 3000 is already in use"
+Fix: Stop the process using port 3000 or change `PORT=3001` in `.env` and restart:
+`npm run dev`
+
+================================================================================
+10. SECTION J: FREE-TIER LIMITATIONS & BROWSER SUPPORT
+================================================================================
+
+1. Google Gemini Free Tier:
+   - Google AI Studio provides free Gemini access with generous RPM (requests per minute) and RPD (requests per day) quotas for development.
+   - No credit card is required.
+   - Free quotas are sufficient for dozens of complete interview sessions daily.
+
+2. Browser Voice APIs:
+   - SpeechRecognition and SpeechSynthesis are browser-native standards.
+   - Desktop Google Chrome provides the most accurate and responsive speech-to-text transcription.
+   - No external speech API subscription (like Deepgram or ElevenLabs) is needed!
+
+3. PostgreSQL Database:
+   - PostgreSQL Community Edition is 100% open-source and free forever.
+   - All interview data, transcripts, evaluations, and bookmarks remain entirely on your local machine.
+
+Enjoy preparing for your technical interviews with InterviewIQ!
+================================================================================

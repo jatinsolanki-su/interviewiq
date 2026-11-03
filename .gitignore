@@ -1,0 +1,25 @@
+# Dependencies
+node_modules/
+
+# Environment variables and secrets
+.env
+.env.*
+!.env.example
+
+# Local configuration
+.aistudio/
+
+# Local database
+.local_db_store.json
+
+# User uploads
+uploads/*
+!uploads/.gitkeep
+
+# Build files
+dist/
+build/
+coverage/
+
+# Logs
+*.log

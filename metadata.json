@@ -1,0 +1,10 @@
+{
+  "name": "InterviewIQ",
+  "description": "Evidence-Based AI Voice Technical Interview Platform with Adaptive Questioning and Skill Gap Mapping",
+  "requestFramePermissions": [
+    "microphone"
+  ],
+  "majorCapabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}
